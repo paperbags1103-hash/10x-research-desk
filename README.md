@@ -6,12 +6,13 @@ GitHub Pages(`main` 브랜치 루트)로 서비스된다.
 - **Live:** https://paperbags1103-hash.github.io/10x-research-desk/
 - **원천 리서치:** `../investment-desk/` (STRATEGY · PLAYBOOK · ledger · memos · scorecard)
 
-## 구성 (4개 탭)
+## 구성 (5개 탭)
 
 | 탭 | 내용 | 데이터 |
 |---|---|---|
 | **Overview / Briefing** | 데스크 요지, 핵심 지표, 기준지수(Base 100 → 5Y 목표), 배분 비중(집중안/4바구니안 토글), 추적 변수, 거시 테이프 | `data/briefing.json` |
 | **Deep-Dive Memos** | 메모 전문을 카드·표·5년 시나리오 바·무효화 기준·진입 사다리·촉매 타임라인으로 렌더 | `data/memos.json` |
+| **Frontier Lab** | 1차 원천 기반 첨단기술 리포트 — 3줄 결론, 판정 등급(화학 vs 산업), 선정 로그, 1차 시그널, 제1원리 판정, 밸류체인·10x, 체크포인트·무효화, 한계 | `data/frontier.json` |
 | **Idea Ledger** | 아이디어 상태(진입 대기/후보/탈락) 필터 뷰, 진입가·가설·무효화 | `data/ledger.json` |
 | **Self-Eval & Playbook** | 자가평가 점수 링·4개 채점 축·평가 로그·개선 액션·룰북·변경 이력 | `data/scorecard.json` · `data/playbook.json` |
 
@@ -20,10 +21,11 @@ GitHub Pages(`main` 브랜치 루트)로 서비스된다.
 ```
 index.html            셸(헤더·탭바·에러 수집기)
 assets/style.css      디자인 시스템 (다크 에디토리얼 + 라임 액센트)
-assets/app.js         데이터 로더 + 렌더러 (해시 라우팅: #overview #deepdive #ledger #system)
+assets/app.js         데이터 로더 + 렌더러 (해시 라우팅: #overview #deepdive #frontier #ledger #system)
 data/meta.json        사이트 메타 (updatedAt, dataVersion)
 data/briefing.json    Overview
 data/memos.json       Deep-Dive 메모 (배열 — 메모 추가 시 append)
+data/frontier.json    Frontier Lab 리포트 (reports 배열 — 리포트 추가 시 append)
 data/ledger.json      Idea Ledger
 data/playbook.json    룰북
 data/scorecard.json   자가평가
@@ -42,8 +44,7 @@ publish.sh            검증 → 커밋 → 푸시 (배포)
 3. `./publish.sh "data: 2026-11-27 아침 브리핑"` — 검증 실패 시 푸시되지 않는다.
 4. 30~60초 뒤 라이브 URL 확인.
 
-`selfcheck.py`는 ① 필수 키 ② 배분 비중 합계 100% ③ statusKey 화이트리스트 ④ scorecard 총점=항목합 
-⑤ **프라이버시 lint**(휴대폰·이메일·실명·원화 금액)를 검사한다. lint에 걸리면 배포가 막힌다.
+`selfcheck.py`는 ① 필수 키 ② 배분 비중 합계 100% ③ statusKey 화이트리스트 ④ scorecard 총점=항목합 ⑤ frontier 리포트 id·블록 스키마 ⑥ **프라이버시 lint**(휴대폰·이메일·실명·원화 금액)를 검사한다. lint에 걸리면 배포가 막힌다.
 
 ## 데이터 규약 (요약)
 
@@ -79,6 +80,18 @@ publish.sh            검증 → 커밋 → 푸시 (배포)
   "gaps": ["..."],
   "sources": [{ "group": "1차 소스", "items": [{ "label": "...", "url": "https://..." }] }] }
 
+// frontier.json
+{ "lab": "Frontier Tech Lab", "tagline": "...",
+  "reports": [{ "id": "001", "domain": "바이오 제조", "badge": "1차 원천", "kicker": "...",
+    "title": "제목<br><em>강조</em>", "lede": "...", "date": "2026-11-27", "status": "REAL INFLECTION · WRONG TIMELINE",
+    "stats": [{ "label": "PMI / 잔기", "value": "5.5", "note": "...", "tone": "hot" }],
+    "grades": [{ "label": "CHEM", "grade": "A-", "pct": 88, "tone": "base", "cap": "화학은 진짜" }],
+    "gradeNote": "...", "thesis": ["3줄 결론 1", "..."],
+    "blocks": [ /* memos와 동일한 블록 규약 */ ],
+    "invalidation": [{ "n": "01", "condition": "...", "action": "..." }], "invalidationNote": "...",
+    "limits": ["..."], "sources": [{ "group": "1차 문헌", "items": [{ "label": "...", "url": "https://..." }] }],
+    "footnote": "..." }] }
+
 // ledger.json
 { "items": [{ "id": "001", "ticker": "EROC", "exchange": "NYSE", "name": "ERock",
   "bucket": "1호 · 비중 45%", "entryPrice": "$5.60", "entryPlan": "(% of sleeve) 30/35/35",
@@ -104,6 +117,6 @@ publish.sh            검증 → 커밋 → 푸시 (배포)
   ```
   git push origin HEAD && git push origin HEAD:gh-pages
   ```
-- 배포 후 검증: 라이브 URL에서 4개 탭 전환 → 콘솔 에러 0 → `window.__deskErrors` 빈 배열.
+- 배포 후 검증: 라이브 URL에서 5개 탭 전환 → 콘솔 에러 0 → `window.__deskErrors` 빈 배열.
   `index.html`이 로드 전에 `window.__deskErrors`를 만들고 `window.__deskReady = true`를 세팅하므로
   브라우저 콘솔에서 `__deskReady` / `__deskErrors`로 확인할 수 있다.

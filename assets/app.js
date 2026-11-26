@@ -5,14 +5,15 @@
 (function () {
   "use strict";
 
-  var FILES = ["meta", "briefing", "memos", "ledger", "playbook", "scorecard"];
+  var FILES = ["meta", "briefing", "memos", "ledger", "playbook", "scorecard", "frontier"];
   var D = {};
   var app = document.getElementById("app");
   var state = {
     view: "overview",
     memoIdx: 0,
     alloc: "desk",
-    filter: "all"
+    filter: "all",
+    frontierIdx: 0
   };
 
   /* ---------------------------------------------------------------- utils */
@@ -336,6 +337,88 @@
       "</div>";
   }
 
+  /* -------------------------------------------------------------- frontier */
+
+  function viewFrontier() {
+    var R = (D.frontier && D.frontier.reports) || [];
+    if (!R.length) return '<div class="view"><p class="muted">등록된 프론티어 리포트가 없다.</p></div>';
+    var idx = Math.min(state.frontierIdx, R.length - 1);
+    var r = R[idx];
+
+    var switcher = R.length > 1 ? '<div class="memo-switch">' + R.map(function (x, i) {
+      return '<button type="button" data-act="frontier" data-val="' + i + '" aria-pressed="' + (i === idx) + '">' +
+        esc(x.id) + " · " + esc(x.domain) + "</button>";
+    }).join("") + "</div>" : "";
+
+    var stats = (r.stats || []).map(function (s) {
+      return '<div class="stat ' + (s.tone || "") + '"><span class="k">' + esc(s.label) + "</span>" +
+        '<span class="v">' + rich(s.value) + "</span>" + (s.note ? '<span class="n">' + rich(s.note) + "</span>" : "") + "</div>";
+    }).join("");
+
+    var grades = (r.grades || []).map(function (g) {
+      var w = Math.max(4, Math.min(100, g.pct || 0));
+      return '<div class="scn-row"><span class="name">' + esc(g.label) + "</span>" +
+        '<div class="scn-track"><div class="scn-fill ' + esc(g.tone || "base") + '" style="width:' + w.toFixed(1) + '%"></div></div>' +
+        '<span class="val">' + esc(g.grade) + (g.cap ? "<small>" + esc(g.cap) + "</small>" : "") + "</span></div>";
+    }).join("");
+
+    var gradeCard = grades ? '<div class="card"><div class="row" style="justify-content:space-between;margin-bottom:16px">' +
+      '<span class="mono" style="font-size:10px;letter-spacing:.16em;color:var(--ink-3)">SCIENCE VS INDUSTRY / GRADE</span>' +
+      '<span class="tiny muted">' + rich(r.status || "") + "</span></div>" +
+      '<div class="scn">' + grades + "</div>" +
+      (r.gradeNote ? '<p class="scn-note">' + rich(r.gradeNote) + "</p>" : "") + "</div>" : "";
+
+    var thesis = (r.thesis || []).length ? '<section class="sec">' +
+      sectionHead("00", "3줄 결론", "TL;DR") +
+      '<div class="callout"><span class="ct">Read this first</span>' +
+      blockList({ ordered: true, items: r.thesis }) + "</div></section>" : "";
+
+    var inval = (r.invalidation || []).length ? '<section class="sec">' +
+      sectionHead("INV", "무효화 조건", "Explicit · 2 of 4 kills it") +
+      '<div class="inval">' + r.invalidation.map(function (v) {
+        return '<div class="inval-row"><span class="n">' + esc(v.n) + '</span><span class="c">' + rich(v.condition) + "</span>" +
+          '<span class="a">' + rich(v.action) + "</span></div>";
+      }).join("") + "</div>" +
+      (r.invalidationNote ? '<p class="tiny muted" style="margin-top:12px">' + rich(r.invalidationNote) + "</p>" : "") +
+      "</section>" : "";
+
+    var limits = (r.limits || []).length ? '<section class="sec">' +
+      sectionHead("LIM", "한계와 오독 방지", "Honest unknowns") +
+      '<div class="callout quiet">' + blockList({ ordered: true, items: r.limits }) + "</div></section>" : "";
+
+    var sources = (r.sources || []).length ? '<section class="sec">' +
+      sectionHead("SRC", "원천 목록", "Primary sources first") +
+      r.sources.map(function (g) {
+        return '<details class="src-group"><summary>' + esc(g.group) + '</summary><div class="src-list">' +
+          g.items.map(function (it) {
+            if (it.url) {
+              return '<a href="' + esc(it.url) + '" target="_blank" rel="noopener noreferrer">' + esc(it.label) + "</a>";
+            }
+            return '<span class="plain">' + esc(it.label) + "</span>";
+          }).join("") + "</div></details>";
+      }).join("") + "</section>" : "";
+
+    return '<div class="view">' + switcher +
+      '<header class="memo-head">' +
+      '<div class="memo-tickerline">' +
+      '<span class="ticker-chip">FL-' + esc(r.id) + "</span>" +
+      '<span class="ticker-chip ghost">' + esc(r.domain) + "</span>" +
+      '<span class="pill active dot">' + esc(r.badge || "1차 원천") + "</span>" +
+      '<span class="mono tiny muted" style="margin-left:auto">' + esc(r.date) + "</span>" +
+      "</div>" +
+      '<p class="eyebrow">' + esc(r.kicker) + "</p>" +
+      '<h1 class="display" style="font-size:clamp(1.9rem,5.4vw,3rem)">' + rich(r.title) + "</h1>" +
+      '<p class="lede">' + rich(r.lede) + "</p>" +
+      "</header>" +
+      '<section class="sec"><div class="stats">' + stats + "</div></section>" +
+      thesis +
+      (gradeCard ? '<section class="sec">' + sectionHead("GRADE", "판정 등급", "Chemistry ≠ Scale") + gradeCard + "</section>" : "") +
+      blocksToSections(r.blocks || []) +
+      inval + limits + sources +
+      (r.footnote ? '<p class="tiny muted" style="margin-top:18px">' + rich(r.footnote) + "</p>" : "") +
+      "</div>";
+  }
+
   /* ---------------------------------------------------------------- ledger */
 
   var STATUS_LABELS = { wait: "진입 대기", candidate: "후보", drop: "탈락", active: "보유", watch: "관찰", closed: "종료" };
@@ -455,7 +538,7 @@
 
   /* ----------------------------------------------------------------- shell */
 
-  var VIEWS = { overview: viewOverview, deepdive: viewDeepDive, ledger: viewLedger, system: viewSystem };
+  var VIEWS = { overview: viewOverview, deepdive: viewDeepDive, frontier: viewFrontier, ledger: viewLedger, system: viewSystem };
 
   function currentView() {
     var h = (location.hash || "#overview").replace("#", "");
@@ -470,7 +553,7 @@
       if (a.getAttribute("data-nav") === state.view) a.setAttribute("aria-current", "page");
       else a.removeAttribute("aria-current");
     });
-    document.title = "10X Research Desk — " + ({ overview: "Briefing", deepdive: "Deep-Dive", ledger: "Idea Ledger", system: "Playbook" })[state.view];
+    document.title = "10X Research Desk — " + ({ overview: "Briefing", deepdive: "Deep-Dive", frontier: "Frontier Lab", ledger: "Idea Ledger", system: "Playbook" })[state.view];
   }
 
   app.addEventListener("click", function (e) {
@@ -481,6 +564,7 @@
     if (act === "alloc") { state.alloc = val; render(); }
     if (act === "filter") { state.filter = val; render(); }
     if (act === "memo") { state.memoIdx = parseInt(val, 10) || 0; render(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+    if (act === "frontier") { state.frontierIdx = parseInt(val, 10) || 0; render(); window.scrollTo({ top: 0, behavior: "smooth" }); }
   });
 
   window.addEventListener("hashchange", function () {

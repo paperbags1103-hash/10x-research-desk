@@ -37,6 +37,7 @@ REQUIRED = {
     "ledger": ["items"],
     "playbook": ["version", "rules"],
     "scorecard": ["criteria", "total", "history"],
+    "frontier": ["reports"],
 }
 
 STATUS_KEYS = {"active", "wait", "candidate", "watch", "drop", "closed"}
@@ -137,6 +138,38 @@ def check_structure(store: dict) -> None:
         if sc.get("total") != s:
             errors.append(f"scorecard: total {sc.get('total')} ≠ 항목 합계 {s}")
 
+    reports = (store.get("frontier") or {}).get("reports") or []
+    seen_reports = set()
+    for r in reports:
+        rid = r.get("id")
+        if not rid:
+            errors.append("frontier: id 없는 리포트")
+            continue
+        if rid in seen_reports:
+            errors.append(f"frontier: 중복 id {rid}")
+        seen_reports.add(rid)
+        for k in ("domain", "title", "lede", "date", "blocks"):
+            if not r.get(k):
+                errors.append(f"frontier[{rid}]: 필수 키 누락 '{k}'")
+        if not isinstance(r.get("stats"), list) or not r.get("stats"):
+            warnings.append(f"frontier[{rid}]: stats 없음 — 상단 지표 스트립이 빈다")
+        for g in r.get("grades") or []:
+            if not isinstance(g.get("pct"), (int, float)):
+                errors.append(f"frontier[{rid}].grades: pct 숫자 아님 ({g.get('label')})")
+        for blk in r.get("blocks", []):
+            t = blk.get("type")
+            if t not in BLOCK_TYPES:
+                errors.append(f"frontier[{rid}]: 알 수 없는 블록 타입 '{t}'")
+            if t == "section":
+                for inner in blk.get("blocks", []):
+                    if inner.get("type") not in BLOCK_TYPES:
+                        errors.append(f"frontier[{rid}]: 알 수 없는 블록 타입 '{inner.get('type')}'")
+                if "num" not in blk or "title" not in blk:
+                    warnings.append(f"frontier[{rid}]: 섹션 num/title 누락")
+        for it in r.get("sources") or []:
+            if not it.get("group") or not it.get("items"):
+                errors.append(f"frontier[{rid}].sources: group/items 누락")
+
 
 def lint_privacy(store: dict) -> None:
     for name in store:
@@ -188,7 +221,8 @@ def main() -> int:
 
     memos = len(((store.get("memos") or {}).get("memos")) or [])
     ideas = len(((store.get("ledger") or {}).get("items")) or [])
-    print(f"✓ data OK — memo {memos} · ledger {ideas} · 경고 {len(warnings)}")
+    reports = len(((store.get("frontier") or {}).get("reports")) or [])
+    print(f"✓ data OK — memo {memos} · ledger {ideas} · frontier {reports} · 경고 {len(warnings)}")
 
     if "--stamp" in sys.argv:
         stamp()
