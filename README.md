@@ -97,7 +97,10 @@ publish.sh            검증 → 커밋 → 푸시 (배포)
 ## 배포
 
 - 저장소: `paperbags1103-hash/10x-research-desk` (public)
-- Pages: `main` / 루트, 빌드 없음 (`.nojekyll`)
+- Pages: **`gh-pages` 브랜치 루트**가 배포 소스 (빌드 없음, `.nojekyll`). `publish.sh`가 `main`과 `gh-pages`를 같이 밀어 준다 — 손으로 배포할 때도 두 브랜치를 모두 푸시해야 사이트가 갱신된다.
+  ```
+  git push origin HEAD && git push origin HEAD:gh-pages
+  ```
 - 배포 후 검증: 라이브 URL에서 4개 탭 전환 → 콘솔 에러 0 → `window.__deskErrors` 빈 배열.
   `index.html`이 로드 전에 `window.__deskErrors`를 만들고 `window.__deskReady = true`를 세팅하므로
   브라우저 콘솔에서 `__deskReady` / `__deskErrors`로 확인할 수 있다.

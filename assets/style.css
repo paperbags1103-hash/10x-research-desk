@@ -797,7 +797,6 @@ details.more[open] summary::before { content: "−"; }
   transition: color .16s, background .16s;
 }
 .tabbar svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.tabbar a:first-child svg path, .tabbar a:nth-child(3) svg path { stroke: none; fill: currentColor; }
 .tabbar a.is-active { color: var(--lime); background: rgba(200, 255, 0, 0.07); }
 
 @media (min-width: 900px) {

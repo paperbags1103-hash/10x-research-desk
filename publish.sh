@@ -3,7 +3,7 @@
 #  10X Research Desk — publish to GitHub Pages
 #  사용법:  ./publish.sh "data: 2026-11-27 아침 브리핑 반영"
 #  하는 일: ① data/*.json 검증(+프라이버시 lint, meta 스탬프) ② 장부 동기화 확인
-#          ③ commit ④ push  →  main 브랜치 루트가 Pages로 서비스된다.
+#          ③ commit ④ push(main + gh-pages)  →  gh-pages 브랜치가 Pages 소스다.
 # ============================================================================
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -32,5 +32,6 @@ git diff --cached --stat | tail -n 6
 echo "▸ 4/4  커밋 & 푸시"
 git -c user.name="$NAME" -c user.email="$EMAIL" commit -q -m "$MSG"
 git push -q origin HEAD
+git push -q origin HEAD:gh-pages   # Pages 배포 소스 = gh-pages 브랜치
 echo "✓ 푸시 완료 — Pages 반영까지 보통 30~60초"
 echo "  $URL"
