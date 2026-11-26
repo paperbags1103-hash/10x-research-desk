@@ -88,6 +88,9 @@ publish.sh            검증 → 커밋 → 푸시 (배포)
 `statusKey` 허용값: `active` · `wait` · `candidate` · `watch` · `drop` · `closed`.
 `**굵게**` 는 렌더 시 `<b>`로 변환된다(모든 텍스트 필드 공통). HTML 태그를 직접 써도 된다.
 
+> **캐시 주의:** `index.html`의 `assets/style.css?v=` / `assets/app.js?v=` 값을 CSS·JS 수정 시 함께 올린다.
+> 데이터 JSON은 `app.js`가 `?v=<timestamp>`로 매번 새로 받아오므로 캐시 걱정이 없다.
+
 ## 프라이버시 규칙 (공개 페이지)
 
 - 실명 · 전화번호 · 이메일 · 계좌/증권사 · 개인 신상 **금지**.
