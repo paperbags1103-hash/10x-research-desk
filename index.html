@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>10X Research Desk — 5Y Multi-Bagger</title>
+<meta name="description" content="A private, editorial investment research desk. Screening, deep-dive memos, idea ledger and a self-scoring playbook — 5Y 10x multi-bagger framework.">
+<meta name="theme-color" content="#0A0B0D">
+<meta name="color-scheme" content="dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="10X Research Desk">
+<meta property="og:description" content="Screening · Deep-Dive · Ledger · Playbook. A self-evolving investment research system.">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230A0B0D'/%3E%3Cpath d='M8 22V10h4.2v8.2H20V10h4v12h-4v-2.4h-3.6V22z' fill='%23C8FF00'/%3E%3C/svg%3E">
+<script>
+  // Runtime error collector — used for post-deploy verification.
+  window.__deskErrors = [];
+  window.addEventListener('error', function (e) {
+    window.__deskErrors.push(String((e && e.message) || e));
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    window.__deskErrors.push('promise: ' + String((e && e.reason && e.reason.message) || (e && e.reason)));
+  });
+</script>
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true"></div>
+
+<header class="site-head">
+  <a class="brand" href="#overview" aria-label="10X Research Desk — Overview">
+    <span class="brand-mark" aria-hidden="true">10X</span>
+    <span class="brand-text">
+      <b>Research Desk</b>
+      <small>5Y Multi-Bagger</small>
+    </span>
+  </a>
+
+  <nav class="topnav" aria-label="Sections">
+    <a href="#overview" data-nav="overview">Overview</a>
+    <a href="#deepdive" data-nav="deepdive">Deep-Dive</a>
+    <a href="#ledger" data-nav="ledger">Ledger</a>
+    <a href="#system" data-nav="system">Playbook</a>
+  </nav>
+
+  <div class="head-meta">
+    <span class="pulse" aria-hidden="true"></span>
+    <span id="head-updated">Loading…</span>
+  </div>
+</header>
+
+<main id="app" tabindex="-1">
+  <div class="loading">
+    <span class="spinner" aria-hidden="true"></span>
+    <p>데스크 데이터 불러오는 중</p>
+  </div>
+</main>
+
+<nav class="tabbar" aria-label="Sections">
+  <a href="#overview" data-nav="overview">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z"/></svg>
+    <span>Briefing</span>
+  </a>
+  <a href="#deepdive" data-nav="deepdive">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h9l5 5v13H5V3Zm8 1.5V9h4.5"/><path d="M8 13h8M8 17h6"/></svg>
+    <span>Memo</span>
+  </a>
+  <a href="#ledger" data-nav="ledger">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M4 10h16M9 5v14"/></svg>
+    <span>Ledger</span>
+  </a>
+  <a href="#system" data-nav="system">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>
+    <span>Playbook</span>
+  </a>
+</nav>
+
+<footer class="site-foot">
+  <p><b>10X Research Desk</b> — 개인 리서치 노트. 공개 정보(공시·실적·시세) 기반이며 투자 권유나 자문이 아니다. 모든 배분은 비중(%)과 기준지수로만 표기한다.</p>
+  <p class="foot-mono">Not investment advice · Data as of the memo date · <span id="foot-version">—</span></p>
+</footer>
+
+<script src="assets/app.js"></script>
+</body>
+</html>
