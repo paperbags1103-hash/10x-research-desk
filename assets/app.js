@@ -263,7 +263,7 @@
     }).join("");
 
     var scnCard = '<div class="card"><div class="row" style="justify-content:space-between;margin-bottom:16px">' +
-      '<span class="mono" style="font-size:10px;letter-spacing:.16em;color:var(--ink-3)">5Y TERMINAL MULTIPLE / ENTRY $' + esc(m.entryPrice || "") + "</span>" +
+      '<span class="mono" style="font-size:10px;letter-spacing:.16em;color:var(--ink-3)">5Y TERMINAL MULTIPLE / ENTRY ' + (m.currency === 'KRW' ? '' : '$') + esc(m.entryPrice || "") + "</span>" +
       '<span class="tiny muted">확률가중 ' + rich(m.weightedMultiple || "—") + "</span></div>" +
       '<div class="scn">' + scn + "</div>" +
       (m.scenarioNote ? '<p class="scn-note">' + rich(m.scenarioNote) + "</p>" : "") + "</div>";
