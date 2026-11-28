@@ -20,6 +20,7 @@ Usage:
 from __future__ import annotations
 
 import datetime as dt
+import hashlib
 import json
 import re
 import sys
@@ -54,7 +55,6 @@ PRIVACY = [
     (re.compile(r"(?<![\dA-Za-z])01[016789][-.\s]\d{3,4}[-.\s]\d{4}(?!\d)"), "휴대폰 번호 형태"),
     (re.compile(r"(?<![\dA-Za-z])01[016789]\d{7,8}(?![\dA-Za-z])"), "휴대폰 번호 형태"),
     (re.compile(r"[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}"), "이메일 주소"),
-    (re.compile(r"심\s*규\s*범|치레아|\b규범\b"), "실명/호칭"),
     (re.compile(r"\d[\d,]*\s*만\s*원"), "원화 금액(계좌 규모 노출)"),
     (re.compile(r"\d[\d,]*\s*억\s*원(?!\s*(?:규모|이상|이하|대))"), "원화 금액(계좌 규모 노출)"),
     (re.compile(r"시드\s*(?:금액|자금)"), "시드 금액 표현"),
@@ -62,6 +62,81 @@ PRIVACY = [
 
 errors: list[str] = []
 warnings: list[str] = []
+
+# 실명·호칭 차단 목록.
+# 이 파일은 공개 저장소에 올라가므로 평문 이름 대신, 소금을 섞은 SHA-256 앞 16자리만 보관한다.
+# 검사는 본문을 한 줄씩 한글·영문·숫자가 이어지는 문자열로 보고 3~5자 창을 같은 방식으로 해시해 비교한다.
+# 그래서 "홍 길 동"처럼 띄어 쓴 표기도 잡힌다.
+# 새 이름을 넣을 때:
+#   python3 -c "import hashlib,sys;print(hashlib.sha256((sys.argv[1]+sys.argv[2].lower()).encode()).hexdigest()[:16])" '<PII_SALT>' '<이름>'
+PII_SALT = "10x-research-desk/pii-guard/v1"
+# 이름·애칭 — 붙여 쓴 표기와 띄어 쓴 표기를 함께 잡기 위해 다자 창으로 비교한다.
+PII_NAME_HASHES = {
+    "b46a0dc268babbe6",  # 본인 실명
+    "9c26ad68000887cf",  # 배우자 호칭
+    "c888263d30d09278",  # 배우자 애칭
+    "2395d7f3d72fb7d3",  # 앱 닉네임
+    "c363a1f4b4e41722",  # 비서 이름
+    "d8568173d2d6ef36",  # 가족 애칭
+    "2c12ca4fb3eb34c7",  # 지인 이름
+}
+# 흔한 글자 조합이라 창 비교로는 오탐이 나기 싶은 말 — 낱말 하나로 쓰일 때만 막는다.
+PII_WORD_HASHES = {
+    "2709fdd28970b860",
+}
+PII_NAME_MIN, PII_NAME_MAX = 3, 5
+PII_JOIN_GAP = 2  # 이름 글자 사이에 들어와도 되는 공백 수
+PII_RUN = re.compile(r"[0-9A-Za-z\uac00-\ud7a3]+")
+_hash_cache: dict[str, str] = {}
+
+
+def pii_hash(word: str) -> str:
+    return hashlib.sha256((PII_SALT + word.lower()).encode("utf-8")).hexdigest()[:16]
+
+
+def blocked_name_spans(text: str) -> list[tuple[int, int]]:
+    """차단 목록에 걸리는 구간을 돌려준다. 본문 단어와 비교는 해시로만 한다."""
+    spans: list[tuple[int, int]] = []
+
+    def scan(positions: list[int], body: str, base: int) -> None:
+        s = "".join(body[p] for p in positions)
+        for size in range(PII_NAME_MIN, PII_NAME_MAX + 1):
+            for i in range(len(s) - size + 1):
+                w = s[i:i + size]
+                h = _hash_cache.get(w)
+                if h is None:
+                    h = _hash_cache[w] = pii_hash(w)
+                if h in PII_NAME_HASHES:
+                    spans.append((base + positions[i], base + positions[i + size - 1] + 1))
+
+    base = 0
+    for line in text.splitlines(keepends=True):
+        body = line.rstrip("\r\n")
+        for m in PII_RUN.finditer(body):
+            if pii_hash(m.group()) in PII_WORD_HASHES:
+                spans.append((base + m.start(), base + m.end()))
+        positions = [i for i, ch in enumerate(body) if PII_RUN.match(ch)]
+        if positions:
+            segment = [positions[0]]
+            for prev, cur in zip(positions, positions[1:]):
+                gap = body[prev + 1:cur]
+                if len(gap) <= PII_JOIN_GAP and not gap.strip():
+                    segment.append(cur)
+                else:
+                    if len(segment) >= PII_NAME_MIN:
+                        scan(segment, body, base)
+                    segment = [cur]
+            if len(segment) >= PII_NAME_MIN:
+                scan(segment, body, base)
+        base += len(line)
+    spans.sort()
+    merged: list[tuple[int, int]] = []
+    for start, end in spans:
+        if merged and start <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append((start, end))
+    return merged
 
 
 def load(name: str):
@@ -262,6 +337,10 @@ def lint_privacy(store: dict) -> None:
                 start = max(0, m.start() - 40)
                 snippet = text[start:m.end() + 40].replace("\n", " ")
                 errors.append(f"{name}.json: {label} 의심 — …{snippet}…")
+        for start, end in blocked_name_spans(text):
+            before = text[max(0, start - 30):start].replace("\n", " ")
+            after = text[end:end + 30].replace("\n", " ")
+            errors.append(f"{name}.json: 실명/호칭 의심 — …{before}[차단어]{after}…")
 
 
 def stamp() -> None:
