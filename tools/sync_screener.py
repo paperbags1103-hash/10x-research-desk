@@ -211,6 +211,7 @@ def build_top(rows: list, market: str) -> list:
     for it in rows:
         axes = it.get("axes") or {}
         met = it.get("metrics") or {}
+        urls = it.get("source_urls") or {}
         out.append({
             "rank": it.get("rank"),
             "ticker": it.get("ticker"),
@@ -218,6 +219,8 @@ def build_top(rows: list, market: str) -> list:
             "mc": market_cap_label(it.get("market_cap"), market),
             "band": it.get("band"),
             "total": round(float(it.get("total") or 0), 1),
+            "url": urls.get("quote_and_factors") or "",
+            "filing": urls.get("primary") or "",
             "axes": {k: (round(float(axes.get(k)), 1) if axes.get(k) is not None else None)
                      for k, _, _, _ in AXES},
             "rev": None if met.get("rev_growth_ttm") is None else round(float(met["rev_growth_ttm"]), 1),

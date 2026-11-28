@@ -423,6 +423,8 @@
       "mc": "$5.04B",
       "band": "B",
       "total": 81.8,
+      "url": "https://www.tradingview.com/symbols/NASDAQ-SEZL/",
+      "filing": "https://data.sec.gov/submissions/CIK0001662991.json",
       "axes": {
         "growth": 18.9,
         "quality": 20.5,
@@ -444,6 +446,8 @@
       "mc": "$16.72B",
       "band": "B",
       "total": 81.2,
+      "url": "https://www.tradingview.com/symbols/NASDAQ-NBIX/",
+      "filing": "https://data.sec.gov/submissions/CIK0000914475.json",
       "axes": {
         "growth": 19.3,
         "quality": 17.1,
@@ -465,6 +469,8 @@
       "mc": "$634M",
       "band": "A",
       "total": 78.7,
+      "url": "https://www.tradingview.com/symbols/NASDAQ-PAYS/",
+      "filing": "https://data.sec.gov/submissions/CIK0001496443.json",
       "axes": {
         "growth": 20.9,
         "quality": 16.3,
@@ -486,6 +492,8 @@
       "mc": "$2.61B",
       "band": "A",
       "total": 77.8,
+      "url": "https://www.tradingview.com/symbols/NYSE-IMAX/",
+      "filing": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000921582.json",
       "axes": {
         "growth": 18.0,
         "quality": 19.7,
@@ -507,6 +515,8 @@
       "mc": "$18.12B",
       "band": "B",
       "total": 76.5,
+      "url": "https://www.tradingview.com/symbols/NYSE-RDDT/",
+      "filing": "https://data.sec.gov/submissions/CIK0001713445.json",
       "axes": {
         "growth": 20.6,
         "quality": 19.7,
@@ -528,6 +538,8 @@
       "mc": "$8.11B",
       "band": "B",
       "total": 76.5,
+      "url": "https://www.tradingview.com/symbols/NASDAQ-KNSA/",
+      "filing": "https://data.sec.gov/submissions/CIK0001730430.json",
       "axes": {
         "growth": 21.5,
         "quality": 16.1,
@@ -549,6 +561,8 @@
       "mc": "$8.79B",
       "band": "B",
       "total": 76.2,
+      "url": "https://www.tradingview.com/symbols/NASDAQ-PTGX/",
+      "filing": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001377121.json",
       "axes": {
         "growth": 21.8,
         "quality": 13.6,
@@ -572,6 +586,8 @@
       "mc": "$8.30B",
       "band": "B",
       "total": 75.9,
+      "url": "https://www.tradingview.com/symbols/NASDAQ-STRL/",
+      "filing": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000874238.json",
       "axes": {
         "growth": 23.0,
         "quality": 16.9,
@@ -593,6 +609,8 @@
       "mc": "$6.05B",
       "band": "B",
       "total": 75.6,
+      "url": "https://www.tradingview.com/symbols/NASDAQ-VICR/",
+      "filing": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000751978.json",
       "axes": {
         "growth": 19.0,
         "quality": 18.9,
@@ -614,6 +632,8 @@
       "mc": "$36.15B",
       "band": "C",
       "total": 75.1,
+      "url": "https://www.tradingview.com/symbols/NASDAQ-ALAB/",
+      "filing": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001736297.json",
       "axes": {
         "growth": 23.4,
         "quality": 20.5,
@@ -637,6 +657,8 @@
       "mc": "1,146억",
       "band": "A",
       "total": 87.4,
+      "url": "https://www.tradingview.com/symbols/KRX-323350/",
+      "filing": "https://m.stock.naver.com/api/stock/323350/finance/annual",
       "axes": {
         "growth": 25.0,
         "quality": 20.0,
@@ -658,6 +680,8 @@
       "mc": "1,093.8조",
       "band": "C",
       "total": 85.9,
+      "url": "https://www.tradingview.com/symbols/KRX-005930/",
+      "filing": "https://m.stock.naver.com/api/stock/005930/finance/annual",
       "axes": {
         "growth": 23.0,
         "quality": 21.1,
@@ -679,6 +703,8 @@
       "mc": "742.5조",
       "band": "C",
       "total": 85.6,
+      "url": "https://www.tradingview.com/symbols/KRX-000660/",
+      "filing": "https://m.stock.naver.com/api/stock/000660/finance/annual",
       "axes": {
         "growth": 24.6,
         "quality": 22.0,
@@ -702,6 +728,8 @@
       "mc": "1,516억",
       "band": "A",
       "total": 85.4,
+      "url": "https://www.tradingview.com/symbols/KRX-064850/",
+      "filing": "https://m.stock.naver.com/api/stock/064850/finance/annual",
       "axes": {
         "growth": 21.0,
         "quality": 19.4,
@@ -723,6 +751,8 @@
       "mc": "2.2조",
       "band": "A",
       "total": 84.8,
+      "url": "https://www.tradingview.com/symbols/KRX-319660/",
+      "filing": "https://m.stock.naver.com/api/stock/319660/finance/annual",
       "axes": {
         "growth": 23.0,
         "quality": 18.2,
@@ -744,6 +774,8 @@
       "mc": "2,481억",
       "band": "A",
       "total": 83.8,
+      "url": "https://www.tradingview.com/symbols/KRX-098120/",
+      "filing": "https://m.stock.naver.com/api/stock/098120/finance/annual",
       "axes": {
         "growth": 22.8,
         "quality": 20.8,
@@ -765,6 +797,8 @@
       "mc": "4,877억",
       "band": "A",
       "total": 83.7,
+      "url": "https://www.tradingview.com/symbols/KRX-005690/",
+      "filing": "https://m.stock.naver.com/api/stock/005690/finance/annual",
       "axes": {
         "growth": 21.1,
         "quality": 20.8,
@@ -786,6 +820,8 @@
       "mc": "6,330억",
       "band": "A",
       "total": 83.3,
+      "url": "https://www.tradingview.com/symbols/KRX-425420/",
+      "filing": "https://m.stock.naver.com/api/stock/425420/finance/annual",
       "axes": {
         "growth": 22.0,
         "quality": 18.8,
@@ -807,6 +843,8 @@
       "mc": "47.6조",
       "band": "C",
       "total": 82.3,
+      "url": "https://www.tradingview.com/symbols/KRX-068270/",
+      "filing": "https://m.stock.naver.com/api/stock/068270/finance/annual",
       "axes": {
         "growth": 21.6,
         "quality": 14.0,
@@ -828,6 +866,8 @@
       "mc": "846억",
       "band": "A",
       "total": 81.6,
+      "url": "https://www.tradingview.com/symbols/KRX-396470/",
+      "filing": "https://m.stock.naver.com/api/stock/396470/finance/annual",
       "axes": {
         "growth": 22.0,
         "quality": 15.8,

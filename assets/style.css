@@ -866,6 +866,10 @@ details.more[open] summary::before { content: "−"; }
 .screener-table td.total { color: var(--ink); font-weight: 700; font-size: 13px; }
 .nm-cell b { display: block; font-size: 12.5px; font-weight: 700; color: var(--ink); }
 .nm-cell small { display: block; margin-top: 1px; font-family: var(--mono); font-size: 10px; letter-spacing: .03em; color: var(--ink-4); }
+.nm-cell a b { color: var(--ink); }
+.nm-cell a:hover b { color: var(--lime); }
+.nm-cell .filing { color: var(--ink-4); border-bottom: 1px dotted var(--line-strong); }
+.nm-cell .filing:hover { color: var(--lime); }
 .flag { display: inline-block; margin: 3px 4px 0 0; padding: 1px 5px; border-radius: 4px; background: var(--red-dim); color: #ff8080; font-family: var(--mono); font-size: 8.5px; letter-spacing: .06em; }
 .gate { display: inline-block; margin: 6px 5px 0 0; padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line); font-family: var(--mono); font-size: 9.5px; letter-spacing: .04em; color: var(--ink-3); }
 .scroll-hint { display: none; }

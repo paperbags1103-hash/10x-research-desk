@@ -533,9 +533,15 @@
     }).join("");
     var body = rows.map(function (r) {
       var flags = (r.flags || []).map(function (f) { return '<span class="flag">' + esc(f) + "</span>"; }).join("");
+      var filing = r.filing
+        ? ' <a class="filing" href="' + esc(r.filing) + '" target="_blank" rel="noopener noreferrer">공시↗</a>'
+        : "";
+      var nameCell = r.url
+        ? '<a href="' + esc(r.url) + '" target="_blank" rel="noopener noreferrer"><b>' + rich(r.name) + "</b></a>"
+        : "<b>" + rich(r.name) + "</b>";
       var cells = [
         '<td class="num mono">' + esc(r.rank === null || r.rank === undefined ? "" : r.rank) + "</td>",
-        '<td class="nm-cell"><b>' + rich(r.name) + "</b><small>" + esc(r.ticker) + " · " + esc(r.mc) + "</small>" + flags + "</td>",
+        '<td class="nm-cell">' + nameCell + "<small>" + esc(r.ticker) + " · " + esc(r.mc) + filing + "</small>" + flags + "</td>",
         '<td><span class="band ' + esc(r.band) + '">' + esc(r.band) + "</span></td>",
         '<td class="num total">' + fnum(r.total, 1) + "</td>"
       ];
