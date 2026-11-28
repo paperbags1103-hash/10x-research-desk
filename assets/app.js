@@ -554,6 +554,7 @@
     return '<div class="tw screener-table"><table><thead><tr>' + head + "</tr></thead><tbody>" + body + "</tbody></table>" +
       '<div class="t-note">5축 만점 — 성장 25 · 마진 22 · 밸류 18 · 건전성 18 · 추세 17. 매출은 TTM 전년비, OPM은 영업이익률, 52주는 고점 대비. ' +
       (market === "us" ? "미국 종목은 SEC XBRL 1차 보강, PER·PEG는 후행 성장 기준." : "한국 종목은 네이버 금융 연·분기 1차 보강, GPM·ROIC는 TradingView 추정 포함.") +
+      '<span class="scroll-hint">← 표를 좌우로 넘기면 5축 점수와 지표가 모두 보인다</span>' +
       "</div></div>";
   }
 
@@ -645,7 +646,7 @@
 
     return '<div class="view">' +
       '<p class="eyebrow">Growth Screener · ' + esc(S.roundLabel || "") + " · " + esc(S.dataLabel || "") + "</p>" +
-      '<h1 class="display">성장주는 매일<br><em>기계가 훑고</em> 사람이 검증한다</h1>' +
+      '<h1 class="display">성장주는 매일<br><em>기계가 훑고</em> 사람이<br class="sm"> 검증한다</h1>' +
       '<p class="lede">미국 ' + fint(us.total) + " · 한국 " + fint(kr.total) + '개 상장사를 5축 100점으로 하루 두 번 훑는다. 상위 종목은 1차 공시로 <strong>사업 모델·해자·촉매·자본배분·반대 논리</strong>를 확인한 뒤에만 후보라고 부른다.</p>' +
       '<section class="sec">' + stats +
       (S.topSummary ? '<p class="mono tiny muted" style="margin:10px 0 0">' + esc(S.topSummary) + "</p>" : "") +

@@ -868,6 +868,12 @@ details.more[open] summary::before { content: "−"; }
 .nm-cell small { display: block; margin-top: 1px; font-family: var(--mono); font-size: 10px; letter-spacing: .03em; color: var(--ink-4); }
 .flag { display: inline-block; margin: 3px 4px 0 0; padding: 1px 5px; border-radius: 4px; background: var(--red-dim); color: #ff8080; font-family: var(--mono); font-size: 8.5px; letter-spacing: .06em; }
 .gate { display: inline-block; margin: 6px 5px 0 0; padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line); font-family: var(--mono); font-size: 9.5px; letter-spacing: .04em; color: var(--ink-3); }
+.scroll-hint { display: none; }
+@media (max-width: 720px) {
+  .scroll-hint { display: block; margin-top: 6px; color: var(--ink-3); }
+  .display br.sm { display: inline; }
+}
+@media (min-width: 721px) { .display br.sm { display: none; } }
 .gate-row { margin-top: 8px; }
 
 details.research { border-top: 1px solid var(--line); padding-top: 12px; }
