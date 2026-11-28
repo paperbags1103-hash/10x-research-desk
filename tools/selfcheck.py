@@ -38,10 +38,16 @@ REQUIRED = {
     "playbook": ["version", "rules"],
     "scorecard": ["criteria", "total", "history"],
     "frontier": ["reports"],
+    "screener": ["updatedAt", "dataLabel", "universe", "topSummary", "verifiedCandidates", "usTop", "krTop", "tracked", "methodology"],
 }
 
 STATUS_KEYS = {"active", "wait", "candidate", "watch", "drop", "closed"}
 BLOCK_TYPES = {"section", "table", "kv", "list", "cards", "callout", "prose", "raw"}
+
+SCREENER_AXES = {"growth": 25, "quality": 22, "value": 18, "balance": 18, "trend": 17}
+CANDIDATE_STATUS = {"verified", "complete", "hold", "reject"}
+RESEARCH_KEYS = ("business", "moat", "growth", "capital", "bear", "invalidation")
+BANDS = {"A", "B", "C"}
 
 # Patterns that must never appear in a public data file.
 PRIVACY = [
@@ -170,6 +176,82 @@ def check_structure(store: dict) -> None:
             if not it.get("group") or not it.get("items"):
                 errors.append(f"frontier[{rid}].sources: group/items 누락")
 
+    check_screener(store.get("screener") or {})
+
+
+def check_screener(scr: dict) -> None:
+    """data/screener.json — 점수는 screener_latest.json에서 오고, 각 후보에는
+    정성 기업 리서치(사업모델·해자·촉매·자본배분·반대논리·무효화선)가 붙는다."""
+    if not scr:
+        return
+
+    uni = scr.get("universe") or {}
+    for mk in ("us", "kr"):
+        block = uni.get(mk) or {}
+        for k in ("total", "passed", "enriched"):
+            if block.get(k) is None:
+                errors.append(f"screener.universe.{mk}.{k} 누락")
+
+    for listname in ("usTop", "krTop"):
+        rows = scr.get(listname) or []
+        if len(rows) < 5:
+            errors.append(f"screener.{listname}: {len(rows)}개 — 최소 5개 필요")
+        for r in rows:
+            tag = r.get("ticker") or "?"
+            if not r.get("name"):
+                errors.append(f"screener.{listname}[{tag}]: name 누락")
+            if r.get("band") not in BANDS:
+                errors.append(f"screener.{listname}[{tag}]: band '{r.get('band')}' — A/B/C 중 하나여야 함")
+            total = r.get("total")
+            if not isinstance(total, (int, float)) or not (0 <= total <= 100):
+                errors.append(f"screener.{listname}[{tag}]: total 숫자 아님/범위 밖 ({total})")
+            axes = r.get("axes") or {}
+            for key, mx in SCREENER_AXES.items():
+                v = axes.get(key)
+                if v is None:
+                    continue
+                if not isinstance(v, (int, float)) or v < 0 or v > mx + 0.01:
+                    errors.append(f"screener.{listname}[{tag}].axes.{key}: {v} (0~{mx})")
+
+    cands = scr.get("verifiedCandidates") or []
+    if not cands:
+        errors.append("screener.verifiedCandidates: 비어 있음")
+    seen = set()
+    for c in cands:
+        tag = c.get("ticker") or "?"
+        if tag in seen:
+            errors.append(f"screener: 중복 후보 {tag}")
+        seen.add(tag)
+        for k in ("name", "status", "statusLabel", "verdict", "research"):
+            if not c.get(k):
+                errors.append(f"screener[{tag}]: 필수 키 누락 '{k}'")
+        if c.get("status") not in CANDIDATE_STATUS:
+            errors.append(f"screener[{tag}]: status '{c.get('status')}' — {sorted(CANDIDATE_STATUS)} 중 하나")
+        if c.get("band") not in BANDS:
+            errors.append(f"screener[{tag}]: band '{c.get('band')}'")
+        res = c.get("research") or {}
+        for k in RESEARCH_KEYS:
+            items = res.get(k)
+            if not isinstance(items, list) or len(items) < 2:
+                errors.append(f"screener[{tag}].research.{k}: 기업 리서치 최소 2개 항목 필요")
+        if not c.get("sources"):
+            errors.append(f"screener[{tag}]: sources 없음 — 1차 출처 필요")
+        for s in c.get("sources") or []:
+            if not s.get("label") or not s.get("url"):
+                errors.append(f"screener[{tag}].sources: label/url 누락")
+
+    tracked = scr.get("tracked") or []
+    if len(tracked) < 4:
+        warnings.append(f"screener.tracked: {len(tracked)}개 — 추적 4종목이 기대값")
+
+    md = scr.get("methodology") or {}
+    for k in ("weights", "axes", "bands", "gates", "limits"):
+        if not md.get(k):
+            errors.append(f"screener.methodology.{k} 누락")
+    weights = md.get("weights") or {}
+    if weights and sum(weights.values()) != 100:
+        errors.append(f"screener.methodology.weights 합계 {sum(weights.values())} (100이어야 함)")
+
 
 def lint_privacy(store: dict) -> None:
     for name in store:
@@ -222,7 +304,8 @@ def main() -> int:
     memos = len(((store.get("memos") or {}).get("memos")) or [])
     ideas = len(((store.get("ledger") or {}).get("items")) or [])
     reports = len(((store.get("frontier") or {}).get("reports")) or [])
-    print(f"✓ data OK — memo {memos} · ledger {ideas} · frontier {reports} · 경고 {len(warnings)}")
+    cands = len(((store.get("screener") or {}).get("verifiedCandidates")) or [])
+    print(f"✓ data OK — memo {memos} · ledger {ideas} · frontier {reports} · screener {cands} · 경고 {len(warnings)}")
 
     if "--stamp" in sys.argv:
         stamp()

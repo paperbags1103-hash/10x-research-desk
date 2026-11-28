@@ -5,7 +5,7 @@
 (function () {
   "use strict";
 
-  var FILES = ["meta", "briefing", "memos", "ledger", "playbook", "scorecard", "frontier"];
+  var FILES = ["meta", "briefing", "memos", "ledger", "playbook", "scorecard", "frontier", "screener"];
   var D = {};
   var app = document.getElementById("app");
   var state = {
@@ -13,7 +13,8 @@
     memoIdx: 0,
     alloc: "desk",
     filter: "all",
-    frontierIdx: 0
+    frontierIdx: 0,
+    screenerIdx: 0
   };
 
   /* ---------------------------------------------------------------- utils */
@@ -419,6 +420,249 @@
       "</div>";
   }
 
+  /* -------------------------------------------------------------- screener */
+
+  var SCR_AXES = [
+    { key: "growth", label: "성장", max: 25 },
+    { key: "quality", label: "마진", max: 22 },
+    { key: "value", label: "밸류", max: 18 },
+    { key: "balance", label: "건전성", max: 18 },
+    { key: "trend", label: "추세", max: 17 }
+  ];
+  var SCR_LABEL = { growth: "성장", quality: "마진", value: "밸류", balance: "건전성", trend: "추세" };
+  var RES_SECTIONS = [
+    ["business", "사업 모델 &amp; 수익 구조"],
+    ["moat", "해자 &amp; 경쟁 구도"],
+    ["growth", "핵심 성장 동력 &amp; 촉매"],
+    ["capital", "자본배분 · 거버넌스 · 고객 구조"],
+    ["bear", "반대 논리 (Bear Case)"]
+  ];
+
+  function fint(v) {
+    if (v === null || v === undefined) return "—";
+    var n = Number(v);
+    return isNaN(n) ? String(v) : n.toLocaleString("en-US");
+  }
+
+  function fnum(v, d) {
+    if (v === null || v === undefined) return "—";
+    var n = Number(v);
+    return isNaN(n) ? "—" : n.toFixed(d === undefined ? 1 : d);
+  }
+
+  function fpct(v, d, sign) {
+    if (v === null || v === undefined) return "—";
+    var n = Number(v);
+    if (isNaN(n)) return "—";
+    return (sign && n > 0 ? "+" : "") + n.toFixed(d === undefined ? 1 : d) + "%";
+  }
+
+  function axisGrid(axes) {
+    return '<div class="axis-grid">' + SCR_AXES.map(function (a) {
+      var v = axes ? axes[a.key] : null;
+      var ratio = v === null || v === undefined ? 0 : Math.max(0, Math.min(1, v / a.max));
+      return '<div class="ax"><span class="ax-k">' + a.label + '</span>' +
+        '<span class="ax-v">' + (v === null || v === undefined ? "—" : fnum(v, 1)) +
+        "<small>/" + a.max + "</small></span>" +
+        '<span class="ax-track"><span class="ax-fill' + (ratio >= 0.8 ? " hot" : "") +
+        '" style="width:' + (ratio * 100).toFixed(1) + '%"></span></span></div>';
+    }).join("") + "</div>";
+  }
+
+  function screenerCard(c) {
+    var res = c.research || {};
+    var km = (c.keyMetrics || []).map(function (m) {
+      return '<span class="km"><span class="k">' + esc(m.k) + '</span><span class="v">' + esc(m.v) + "</span></span>";
+    }).join("");
+
+    var facts = (c.facts || []).length
+      ? '<ul class="cand-facts">' + c.facts.map(function (f) { return "<li>" + rich(f) + "</li>"; }).join("") + "</ul>"
+      : "";
+
+    var sections = RES_SECTIONS.map(function (s) {
+      var items = res[s[0]] || [];
+      if (!items.length) return "";
+      return '<div class="res"><h5>' + s[1] + "</h5><ul>" +
+        items.map(function (t) { return "<li>" + rich(t) + "</li>"; }).join("") + "</ul></div>";
+    }).join("");
+
+    var inval = (res.invalidation || []).length
+      ? '<div class="res-inval"><h5>펀더멘털 무효화선</h5><ul>' +
+        res.invalidation.map(function (t) { return "<li>" + rich(t) + "</li>"; }).join("") + "</ul></div>"
+      : "";
+
+    var watch = (c.watch || []).length
+      ? '<div class="res-watch"><span class="mono tiny muted">다음 확인</span><ul>' +
+        c.watch.map(function (t) { return "<li>" + rich(t) + "</li>"; }).join("") + "</ul></div>"
+      : "";
+
+    var src = (c.sources || []).map(function (s) {
+      return s.url
+        ? '<a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' + esc(s.label) + "</a>"
+        : '<span class="plain">' + esc(s.label) + "</span>";
+    }).join("");
+
+    var extra = (c.links || []).map(function (l) {
+      return '<a href="' + esc(l.url) + '" target="_blank" rel="noopener noreferrer">' + esc(l.label) + "</a>";
+    }).join("");
+
+    return '<article class="cand">' +
+      '<div class="cand-head">' +
+      '<div class="cand-name"><b>' + rich(c.name) + "</b><small>" + esc(c.ticker) + " · " + esc(c.exchange) +
+      ' · <span class="band ' + esc(c.band) + '">' + esc(c.band) + "</span></small></div>" +
+      '<span class="pill ' + esc(c.tone) + ' dot">' + esc(c.statusLabel) + "</span>" +
+      '<div class="cand-score"><b>' + (c.total === null ? "—" : fnum(c.total, 1)) + "</b><span>총점 / 100</span></div>" +
+      "</div>" +
+      (c.oneLiner ? '<p class="cand-oneline">' + rich(c.oneLiner) + "</p>" : "") +
+      (c.verdict ? '<p class="cand-verdict">' + rich(c.verdict) + "</p>" : "") +
+      '<div class="km-row">' + km + "</div>" +
+      axisGrid(c.axes) +
+      facts +
+      '<details class="research" open><summary>기업 리서치 — 사업모델 · 해자 · 촉매 · 자본배분 · 반대논리</summary>' +
+      '<div class="res-grid">' + sections + "</div>" + inval + watch +
+      '<div class="res-src"><span class="mono tiny muted">출처</span>' + src + extra + "</div>" +
+      "</details></article>";
+  }
+
+  function screenerTable(rows, market, withMarket) {
+    if (!rows || !rows.length) return '<p class="muted tiny">데이터 없음</p>';
+    var cols = ["#", "종목", "밴드", "총점"]
+      .concat(SCR_AXES.map(function (a) { return a.label; }))
+      .concat(["매출", "OPM", "PER", "PEG", "52주"]);
+    var head = cols.map(function (c, i) {
+      return '<th class="' + (i >= 3 && i <= 13 ? "num" : "") + '">' + esc(c) + "</th>";
+    }).join("");
+    var body = rows.map(function (r) {
+      var flags = (r.flags || []).map(function (f) { return '<span class="flag">' + esc(f) + "</span>"; }).join("");
+      var cells = [
+        '<td class="num mono">' + esc(r.rank === null || r.rank === undefined ? "" : r.rank) + "</td>",
+        '<td class="nm-cell"><b>' + rich(r.name) + "</b><small>" + esc(r.ticker) + " · " + esc(r.mc) + "</small>" + flags + "</td>",
+        '<td><span class="band ' + esc(r.band) + '">' + esc(r.band) + "</span></td>",
+        '<td class="num total">' + fnum(r.total, 1) + "</td>"
+      ];
+      SCR_AXES.forEach(function (a) {
+        var v = r.axes ? r.axes[a.key] : null;
+        var cls = v === null || v === undefined ? "dim" : (v / a.max >= 0.8 ? "hl" : "");
+        cells.push('<td class="num ' + cls + '">' + (v === null || v === undefined ? "—" : fnum(v, 1)) + "</td>");
+      });
+      cells.push('<td class="num">' + fpct(r.rev, 1, true) + "</td>");
+      cells.push('<td class="num">' + fpct(r.opm, 1, false) + "</td>");
+      cells.push('<td class="num">' + fnum(r.per, 1) + "</td>");
+      cells.push('<td class="num">' + fnum(r.peg, 2) + "</td>");
+      cells.push('<td class="num">' + fpct(r.high52, 1, true) + "</td>");
+      return "<tr>" + cells.join("") + "</tr>";
+    }).join("");
+    return '<div class="tw screener-table"><table><thead><tr>' + head + "</tr></thead><tbody>" + body + "</tbody></table>" +
+      '<div class="t-note">5축 만점 — 성장 25 · 마진 22 · 밸류 18 · 건전성 18 · 추세 17. 매출은 TTM 전년비, OPM은 영업이익률, 52주는 고점 대비. ' +
+      (market === "us" ? "미국 종목은 SEC XBRL 1차 보강, PER·PEG는 후행 성장 기준." : "한국 종목은 네이버 금융 연·분기 1차 보강, GPM·ROIC는 TradingView 추정 포함.") +
+      "</div></div>";
+  }
+
+  function viewScreener() {
+    var S = D.screener;
+    if (!S) return '<div class="view"><p class="muted">스크리너 데이터가 아직 없다. tools/sync_screener.py --write 로 생성할 것.</p></div>';
+
+    var U = S.universe || {}, us = U.us || {}, kr = U.kr || {};
+    var stats = '<div class="stats">' +
+      '<div class="stat hot"><span class="k">US UNIVERSE</span><span class="v">' + fint(us.total) + '</span>' +
+      '<span class="n">게이트 통과 ' + fint(us.passed) + " · 1차 보강 " + fint(us.enriched) + "</span></div>" +
+      '<div class="stat hot"><span class="k">KR UNIVERSE</span><span class="v">' + fint(kr.total) + '</span>' +
+      '<span class="n">게이트 통과 ' + fint(kr.passed) + " · 1차 보강 " + fint(kr.enriched) + "</span></div>" +
+      '<div class="stat"><span class="k">RUN</span><span class="v">' + fnum(U.elapsedSec, 1) + 's</span>' +
+      '<span class="n">오류 ' + fint(U.errors) + "건 · 회차 " + esc(S.roundLabel || "—") + "</span></div>" +
+      '<div class="stat"><span class="k">DATA AS OF</span><span class="v" style="font-size:15px;line-height:1.35">' + esc(S.dataLabel || "—") + '</span>' +
+      '<span class="n">US·KR 직전 거래일 종가 기준</span></div></div>';
+
+    var cands = S.verifiedCandidates || [];
+    var idx = Math.min(state.screenerIdx, Math.max(0, cands.length - 1));
+    var switcher = cands.length > 1 ? '<div class="memo-switch screener-switch">' + cands.map(function (c, i) {
+      return '<button type="button" data-act="screener" data-val="' + i + '" aria-pressed="' + (i === idx) + '">' +
+        esc(c.name) + ' <span class="mono" style="opacity:.65">' + (c.statusLabel || "") + "</span></button>";
+    }).join("") + "</div>" : "";
+
+    var candSection = cands.length
+      ? sectionHead("01", "1차 공시 검증 후보", "Company research · " + cands.length + " names") +
+        switcher + screenerCard(cands[idx])
+      : '<div class="callout quiet">이번 회차에 검증을 통과한 신규 후보가 없다.</div>';
+
+    var tracked = '<div class="tw screener-table"><table><thead><tr>' +
+      '<th>시장</th><th>종목</th><th class="num">총점</th>' +
+      SCR_AXES.map(function (a) { return '<th class="num">' + a.label + "</th>"; }).join("") +
+      '<th>게이트</th></tr></thead><tbody>' +
+      (S.tracked || []).map(function (t) {
+        return "<tr><td class=\"mono\" style=\"font-size:10.5px;color:var(--ink-4)\">" + esc(t.market) + "</td>" +
+          '<td class="nm-cell"><b>' + rich(t.name) + "</b><small>" + esc(t.ticker) + "</small></td>" +
+          '<td class="num total">' + fnum(t.total, 1) + "</td>" +
+          SCR_AXES.map(function (a) {
+            var v = t.axes ? t.axes[a.key] : null;
+            var cls = v === null || v === undefined ? "dim" : (v / a.max >= 0.8 ? "hl" : "");
+            return '<td class="num ' + cls + '">' + (v === null || v === undefined ? "—" : fnum(v, 1)) + "</td>";
+          }).join("") +
+          '<td class="mono" style="font-size:11px">' + (t.gate ? '<span class="flag">' + esc(t.gate) + "</span>" : "통과") + "</td></tr>";
+      }).join("") + "</tbody></table>" +
+      '<div class="t-note">보유·검토 중인 4종목. 점수는 신규 후보와 같은 5축 100점 기준이므로 순위 비교에 쓸 수 있다.</div></div>';
+
+    var rounds = (S.rounds || []).map(function (r) {
+      var rows = (r.lines || []).map(function (l) {
+        var sub = (l.sub || []).length ? "<ul class=\"round-next\">" + l.sub.map(function (s) {
+          return "<li>" + rich(s) + "</li>";
+        }).join("") + "</ul>" : "";
+        if (!l.k) return '<div class="kv full">' + rich(l.v) + "</div>" + sub;
+        if (l.k.length > 24) return '<div class="kv full"><span class="v">' + rich(l.k) + (l.v ? " — " + rich(l.v) : "") + "</span></div>" + sub;
+        return '<div class="kv"><span class="k">' + esc(l.k) + '</span><span class="v">' + rich(l.v || "") + "</span></div>" + sub;
+      }).join("");
+      var nxt = (r.nextChecks || []).length && !(r.lines || []).some(function (l) { return (l.sub || []).length; })
+        ? '<ul class="round-next">' + r.nextChecks.map(function (s) { return "<li>" + rich(s) + "</li>"; }).join("") + "</ul>"
+        : "";
+      return '<div class="round"><div class="round-h"><span class="round-d">' + esc(r.date) + "</span>" +
+        '<span class="round-l">' + esc(r.label) + "</span></div><div class=\"round-dl\">" + rows + "</div>" + nxt + "</div>";
+    }).join("");
+
+    var next = (S.nextChecks || []).length
+      ? '<div class="callout"><span class="ct">다음 회차 확인</span><ul class="clean">' +
+        S.nextChecks.map(function (s) { return "<li>" + rich(s) + "</li>"; }).join("") + "</ul></div>"
+      : "";
+
+    var M = S.methodology || {};
+    var axisTable = '<div class="tw screener-table"><table><thead><tr><th>축</th><th class="num">배점</th><th>핵심 팩터</th></tr></thead><tbody>' +
+      (M.axes || []).map(function (a) {
+        return "<tr><td><b>" + esc(a.label) + "</b></td><td class=\"num total\">" + esc(a.max) + "</td><td style=\"color:var(--ink-2)\">" + esc(a.desc) + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+
+    var bandTable = '<div class="tw screener-table"><table><thead><tr><th>밴드</th><th>미국</th><th>한국</th><th>의미</th></tr></thead><tbody>' +
+      (M.bands || []).map(function (b) {
+        return "<tr><td><span class=\"band " + esc(b.band) + "\">" + esc(b.band) + "</span></td><td class=\"mono\" style=\"font-size:11px\">" + esc(b.us) +
+          "</td><td class=\"mono\" style=\"font-size:11px\">" + esc(b.kr) + "</td><td style=\"color:var(--ink-2)\">" + esc(b.note) + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+
+    var gates = (M.gates || []).length
+      ? '<div class="gate-row">' + M.gates.map(function (g) { return '<span class="gate">' + esc(g) + "</span>"; }).join("") + "</div>"
+      : "";
+
+    var limits = (M.limits || []).length
+      ? '<div class="callout quiet"><span class="ct">한계 · 오독 방지</span><ul class="clean">' +
+        M.limits.map(function (l) { return "<li>" + rich(l) + "</li>"; }).join("") + "</ul></div>"
+      : "";
+
+    return '<div class="view">' +
+      '<p class="eyebrow">Growth Screener · ' + esc(S.roundLabel || "") + " · " + esc(S.dataLabel || "") + "</p>" +
+      '<h1 class="display">성장주는 매일<br><em>기계가 훑고</em> 사람이 검증한다</h1>' +
+      '<p class="lede">미국 ' + fint(us.total) + " · 한국 " + fint(kr.total) + '개 상장사를 5축 100점으로 하루 두 번 훑는다. 상위 종목은 1차 공시로 <strong>사업 모델·해자·촉매·자본배분·반대 논리</strong>를 확인한 뒤에만 후보라고 부른다.</p>' +
+      '<section class="sec">' + stats + '</section>' +
+      '<section class="sec">' + candSection + "</section>" +
+      '<section class="sec">' + sectionHead("02", "미국 Top 10", "US · SEC XBRL 1차 보강") + screenerTable(S.usTop, "us") + "</section>" +
+      '<section class="sec">' + sectionHead("03", "한국 Top 10", "KR · 네이버 금융 1차 보강") + screenerTable(S.krTop, "kr") + "</section>" +
+      '<section class="sec">' + sectionHead("04", "추적 종목", "Holdings under review") + tracked + "</section>" +
+      '<section class="sec">' + sectionHead("05", "회차 로그", "Run log · notes.md") + next +
+      '<div class="rounds" style="margin-top:14px">' + rounds + "</div>" +
+      (S.banned ? '<p class="tiny muted" style="margin-top:12px">재탐색 제외: ' + rich(S.banned) + "</p>" : "") + "</section>" +
+      '<section class="sec">' + sectionHead("06", "스코어링 · 게이트", "Methodology") +
+      '<div class="stack">' + axisTable + bandTable +
+      '<div><span class="mono tiny muted">사전 탈락 게이트</span>' + gates + "</div>" + limits + "</div></section>" +
+      (S.footnote ? '<p class="tiny muted" style="margin-top:18px">' + rich(S.footnote) + "</p>" : "") +
+      "</div>";
+  }
+
   /* ---------------------------------------------------------------- ledger */
 
   var STATUS_LABELS = { wait: "진입 대기", candidate: "후보", drop: "탈락", active: "보유", watch: "관찰", closed: "종료" };
@@ -538,7 +782,7 @@
 
   /* ----------------------------------------------------------------- shell */
 
-  var VIEWS = { overview: viewOverview, deepdive: viewDeepDive, frontier: viewFrontier, ledger: viewLedger, system: viewSystem };
+  var VIEWS = { overview: viewOverview, screener: viewScreener, deepdive: viewDeepDive, frontier: viewFrontier, ledger: viewLedger, system: viewSystem };
 
   function currentView() {
     var h = (location.hash || "#overview").replace("#", "");
@@ -553,7 +797,7 @@
       if (a.getAttribute("data-nav") === state.view) a.setAttribute("aria-current", "page");
       else a.removeAttribute("aria-current");
     });
-    document.title = "10X Research Desk — " + ({ overview: "Briefing", deepdive: "Deep-Dive", frontier: "Frontier Lab", ledger: "Idea Ledger", system: "Playbook" })[state.view];
+    document.title = "10X Research Desk — " + ({ overview: "Briefing", screener: "Growth Screener", deepdive: "Deep-Dive", frontier: "Frontier Lab", ledger: "Idea Ledger", system: "Playbook" })[state.view];
   }
 
   app.addEventListener("click", function (e) {
@@ -564,6 +808,7 @@
     if (act === "alloc") { state.alloc = val; render(); }
     if (act === "filter") { state.filter = val; render(); }
     if (act === "memo") { state.memoIdx = parseInt(val, 10) || 0; render(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+    if (act === "screener") { state.screenerIdx = parseInt(val, 10) || 0; render(); window.scrollTo({ top: 0, behavior: "smooth" }); }
     if (act === "frontier") { state.frontierIdx = parseInt(val, 10) || 0; render(); window.scrollTo({ top: 0, behavior: "smooth" }); }
   });
 
