@@ -160,6 +160,7 @@ def parse_notes(path: Path) -> list:
         if line.startswith("  - "):  # nested bullet → belongs to the previous key
             if cur["lines"] and cur["lines"][-1]["k"].startswith("다음 회차"):
                 cur["nextChecks"].append(stripped[2:].strip())
+                cur["lines"][-1]["sub"].append(stripped[2:].strip())
             elif cur["lines"]:
                 cur["lines"][-1]["sub"].append(stripped[2:].strip())
             continue

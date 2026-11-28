@@ -429,7 +429,6 @@
     { key: "balance", label: "건전성", max: 18 },
     { key: "trend", label: "추세", max: 17 }
   ];
-  var SCR_LABEL = { growth: "성장", quality: "마진", value: "밸류", balance: "건전성", trend: "추세" };
   var RES_SECTIONS = [
     ["business", "사업 모델 &amp; 수익 구조"],
     ["moat", "해자 &amp; 경쟁 구도"],
@@ -648,7 +647,9 @@
       '<p class="eyebrow">Growth Screener · ' + esc(S.roundLabel || "") + " · " + esc(S.dataLabel || "") + "</p>" +
       '<h1 class="display">성장주는 매일<br><em>기계가 훑고</em> 사람이 검증한다</h1>' +
       '<p class="lede">미국 ' + fint(us.total) + " · 한국 " + fint(kr.total) + '개 상장사를 5축 100점으로 하루 두 번 훑는다. 상위 종목은 1차 공시로 <strong>사업 모델·해자·촉매·자본배분·반대 논리</strong>를 확인한 뒤에만 후보라고 부른다.</p>' +
-      '<section class="sec">' + stats + '</section>' +
+      '<section class="sec">' + stats +
+      (S.topSummary ? '<p class="mono tiny muted" style="margin:10px 0 0">' + esc(S.topSummary) + "</p>" : "") +
+      '</section>' +
       '<section class="sec">' + candSection + "</section>" +
       '<section class="sec">' + sectionHead("02", "미국 Top 10", "US · SEC XBRL 1차 보강") + screenerTable(S.usTop, "us") + "</section>" +
       '<section class="sec">' + sectionHead("03", "한국 Top 10", "KR · 네이버 금융 1차 보강") + screenerTable(S.krTop, "kr") + "</section>" +
